@@ -96,14 +96,14 @@ export default function ApprovalQueuePage() {
       </div>
 
       {isLoading ? (
-        <div className="border-3 border-ink bg-white p-12 text-center shadow-neo">
+        <div className="border-3 border-ink bg-white p-8 sm:p-12 text-center shadow-neo">
           <RotateCw className="w-8 h-8 animate-spin mx-auto text-sunshine mb-3" />
           <h3 className="font-bungee text-lg">Loading Approval Queue...</h3>
         </div>
       ) : queue && queue.length > 0 ? (
         /* Scrapbook / Corkboard Layout per DESIGN_SYSTEM.md */
-        <div className="corkboard-pattern border-4 border-ink p-8 shadow-neo min-h-[500px]">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="corkboard-pattern border-4 border-ink p-4 sm:p-8 shadow-neo min-h-[500px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {queue.map((asset) => {
               const rotationStyle = getStickerRotationStyle(asset.id);
               const channelName = asset.channel.toLowerCase();

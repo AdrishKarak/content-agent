@@ -109,7 +109,7 @@ function InsightsContent() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       {/* Top Banner */}
-      <div className="mb-8 border-4 border-ink bg-white p-6 shadow-neo">
+      <div className="mb-8 border-4 border-ink bg-white p-4 sm:p-6 shadow-neo">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -169,7 +169,7 @@ function InsightsContent() {
       )}
 
       {/* Module 4: Like-For-Like Cross-Platform Comparison (AC 14.1) */}
-      <div className="border-4 border-ink bg-white p-6 shadow-neo mb-8">
+      <div className="border-4 border-ink bg-white p-4 sm:p-6 shadow-neo mb-8">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b-3 border-ink pb-4 mb-6">
           <div>
             <div className="flex items-center gap-2">

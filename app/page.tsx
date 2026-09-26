@@ -55,41 +55,75 @@ export default function StudioPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-      {/* Top Banner / Hero */}
-      <div className="mb-8 border-4 border-ink bg-white p-6 shadow-neo">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-lime px-2 py-0.5 border-2 border-ink font-bungee text-xs">
-                MODULE 1
-              </span>
-              <span className="font-mono text-xs text-ink/70">
-                GENERATIVE STUDIO & ORCHESTRATION
-              </span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl text-ink font-bungee">
-              CONTENT COMMAND CENTER
-            </h1>
-            <p className="font-inter text-sm text-ink/80 mt-1 max-w-2xl">
-              Feed in a single campaign brief. The multi-agent pipeline extracts structured specs,
-              retrieves historical performance insights via pgvector, and natively crafts
-              distinct visuals & copy for Instagram, Facebook, and X.
-            </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+      {/* Explosive Landing Hero Section */}
+      <section className="border-4 border-ink bg-white p-6 sm:p-10 shadow-neo relative overflow-hidden">
+        <div className="max-w-4xl relative z-10 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="bg-tomato text-white px-2.5 py-1 border-2 border-ink font-bungee text-xs rotate-[-1deg] shadow-neo-xs">
+              HOICHOI HACKATHON &apos;26 • PROBLEM 3
+            </span>
+            <span className="bg-lime text-ink px-2.5 py-1 border-2 border-ink font-bungee text-xs shadow-neo-xs">
+              PRODUCTION-READY AGENT PIPELINE
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bungee text-ink tracking-tight leading-none">
+            AUTONOMOUS BENGALI-FIRST MULTI-PLATFORM STUDIO
+          </h1>
+
+          <p className="font-inter text-sm sm:text-base text-ink/80 max-w-3xl leading-relaxed">
+            Transform OTT show releases into culturally authentic, channel-tailored marketing campaigns
+            for <strong>Instagram (1:1 visual hooks)</strong>, <strong>Facebook (narrative synopsis)</strong>, and{" "}
+            <strong>X (280-char hype threads)</strong>. Guaranteed with zero auto-publish leaks, deterministic
+            compliance checks, and closed-loop semantic insight retrieval.
+          </p>
+
+          {/* Quick Pillars Badges */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <span className="bg-paper px-3 py-1 border-2 border-ink font-mono text-xs font-semibold flex items-center gap-1.5 shadow-neo-xs">
+              <ShieldCheck className="w-3.5 h-3.5 text-lime" /> Zero-Skip HITL Gate
+            </span>
+            <span className="bg-paper px-3 py-1 border-2 border-ink font-mono text-xs font-semibold flex items-center gap-1.5 shadow-neo-xs">
+              <Flame className="w-3.5 h-3.5 text-tomato" /> Bengali Nativeness Check
+            </span>
+            <span className="bg-paper px-3 py-1 border-2 border-ink font-mono text-xs font-semibold flex items-center gap-1.5 shadow-neo-xs">
+              <Sparkles className="w-3.5 h-3.5 text-pink" /> 3 Distinct Visuals
+            </span>
+            <span className="bg-paper px-3 py-1 border-2 border-ink font-mono text-xs font-semibold flex items-center gap-1.5 shadow-neo-xs">
+              <Layers className="w-3.5 h-3.5 text-blue" /> pgvector Insight RAG
+            </span>
+          </div>
+
+          {/* Action CTAs */}
+          <div className="flex flex-wrap items-center gap-3 pt-3">
+            <a
+              href="#studio-workspace"
+              className="neo-btn bg-lime text-ink px-5 py-3 text-sm font-bungee flex items-center gap-2 hover:bg-lime-hover shadow-neo"
+            >
+              <Sparkles className="w-4 h-4" /> Launch Studio Generator ↓
+            </a>
+            <Link
+              href="/guide"
+              className="neo-btn bg-sunshine text-ink px-4 py-3 text-sm font-bungee flex items-center gap-2 shadow-neo"
+            >
+              Read System Guide →
+            </Link>
             <Link
               href="/approval"
-              className="neo-btn bg-sunshine text-ink px-4 py-2 text-sm flex items-center gap-2"
+              className="neo-btn bg-white text-ink px-4 py-3 text-sm font-bungee flex items-center gap-2 shadow-neo"
             >
-              Approval Queue <ArrowRight className="w-4 h-4" />
+              <ShieldCheck className="w-4 h-4 text-tomato" /> Approval Queue
             </Link>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Decorative Neobrutalist Corner Tag */}
+        <div className="hidden lg:block absolute -right-6 -bottom-6 w-44 h-44 bg-sunshine/40 border-4 border-ink rotate-12 -z-0 pointer-events-none" />
+      </section>
+
+      {/* Main Workspace Anchor */}
+      <div id="studio-workspace" className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Brief Submission & Controls (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           <div className="border-3 border-ink bg-white p-6 shadow-neo">

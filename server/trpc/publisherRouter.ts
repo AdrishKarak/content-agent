@@ -51,6 +51,49 @@ export const publisherRouter = router({
       return scheduled;
     }),
 
+  batchSchedule: protectedProcedure
+    .input(
+      z.object({
+        items: z.array(
+          z.object({
+            assetId: z.string(),
+            scheduledAt: z.string(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const results = [];
+      for (const item of input.items) {
+        const asset = await ctx.prisma.contentAsset.findFirst({
+          where: { id: item.assetId, brief: { userId: ctx.userId } },
+        });
+
+        if (!asset || asset.status !== AssetStatus.APPROVED) {
+          continue;
+        }
+
+        const scheduled = await ctx.prisma.scheduledPost.upsert({
+          where: { assetId: asset.id },
+          create: {
+            assetId: asset.id,
+            scheduledAt: new Date(item.scheduledAt),
+          },
+          update: {
+            scheduledAt: new Date(item.scheduledAt),
+          },
+        });
+
+        await ctx.prisma.contentAsset.update({
+          where: { id: asset.id },
+          data: { status: AssetStatus.SCHEDULED },
+        });
+
+        results.push(scheduled);
+      }
+      return results;
+    }),
+
   publishNow: protectedProcedure
     .input(z.object({ scheduledPostId: z.string() }))
     .mutation(async ({ ctx, input }) => {
