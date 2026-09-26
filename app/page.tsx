@@ -200,6 +200,19 @@ export default function StudioPage() {
                     <span className="font-bungee text-[11px] text-lime mr-1">[PERIOD]</span>
                     লালবাজারের গুপ্তধন — Colonial Mystery Detective
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleSampleClick(
+                        `হইচই অরিজিনাল ডার্ক ক্রাইম নয়ার ওয়েব সিরিজ "মান্দার ২"। সমুদ্রতীরের এক প্রত্যন্ত মৎস্যজীবী গ্রামে ক্ষমতা, উচ্চাকাঙ্ক্ষা ও বিশ্বাসঘাতকতার রক্তক্ষয়ী লড়াই। টার্গেট অডিয়েন্স: ২০-৪০ বছর বয়সী থ্রিলার ও সিনেমা অনুরাগীরা। টোন: মেটালিক, গ্রিটি, শেক্সপীয়ারিয়ান ট্র্যাজেডি ও সাইকোলজিক্যাল ডার্কনেস।`
+                      )
+                    }
+                    className="text-left text-xs font-inter p-2 border-2 border-ink hover:bg-tomato/20 transition-colors"
+                  >
+                    <span className="font-bungee text-[11px] text-tomato mr-1">[NOIR]</span>
+                    মান্দার ২ — Coastal Crime Noir & Shakespearean Ambition
+                  </button>
                 </div>
               </div>
 
@@ -327,6 +340,32 @@ export default function StudioPage() {
                       </span>
                     </div>
                   )}
+
+                {/* 15-Second Bengali Audio Hook & Voiceover Script (Multi-Format Expansion) */}
+                <div className="bg-paper border-2 border-ink p-3.5 shadow-neo-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bungee text-xs text-ink flex items-center gap-1.5">
+                      🎙️ 15-Sec Audio Teaser & Radio Promo Script
+                    </span>
+                    <span className="font-mono text-[10px] bg-white px-2 py-0.5 border border-ink">
+                      Audio / Spotify / FM
+                    </span>
+                  </div>
+                  <div className="font-mono text-[11px] text-ink/80 space-y-1.5 bg-white p-2.5 border border-ink/30">
+                    <div>
+                      <span className="text-tomato font-bold">[ভয়েসওভার - গভীর ও রহস্যময় কণ্ঠ, ৫ সে.]:</span>{" "}
+                      &quot;কলকাতার চেনা গলিতে এবার নামছে এক অজানা অন্ধকার...&quot;
+                    </div>
+                    <div>
+                      <span className="text-blue font-bold">[মিউজিক বিট ড্রপ, ৫ সে.]:</span>{" "}
+                      &quot;সত্য উন্মোচনের লড়াইয়ে শেষ পর্যন্ত কে টিকবে?&quot;
+                    </div>
+                    <div>
+                      <span className="text-lime-700 font-bold font-sans">[CTA, ৫ সে.]:</span>{" "}
+                      &quot;আজই দেখুন এবং স্ট্রিম করুন শুধুমাত্র hoichoi-তে!&quot;
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Per-Channel Generated Assets Corkboard */}

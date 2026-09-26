@@ -30,6 +30,10 @@ RUN pnpm prisma generate
 # Build Next.js with standalone output
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mock?sslmode=disable"
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_bW9jay1jbGVyay1rZXktZm9yLWNpLWJ1aWxkLmNsZXJrLmFjY291bnRzLmRldiQ"
+ENV CLERK_SECRET_KEY="sk_test_mock_clerk_secret_key_for_ci_build"
+ENV GEMINI_API_KEY="mock_gemini_key_for_docker_build"
 RUN pnpm build
 
 # Stage 3: Minimal Production Runner
