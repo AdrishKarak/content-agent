@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #FFFFFF;
+    --foreground: #161616;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-bungee), cursive;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Torn Ticket Compliance Rejection Banner (DESIGN_SYSTEM.md) */
+.torn-ticket {
+  position: relative;
+  background-color: #FF4D3C;
+  color: #FFFFFF;
+  border: 3px solid #161616;
+  box-shadow: 4px 4px 0px #161616;
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% calc(100% - 10px),
+    95% 100%,
+    90% calc(100% - 10px),
+    85% 100%,
+    80% calc(100% - 10px),
+    75% 100%,
+    70% calc(100% - 10px),
+    65% 100%,
+    60% calc(100% - 10px),
+    55% 100%,
+    50% calc(100% - 10px),
+    45% 100%,
+    40% calc(100% - 10px),
+    35% 100%,
+    30% calc(100% - 10px),
+    25% 100%,
+    20% calc(100% - 10px),
+    15% 100%,
+    10% calc(100% - 10px),
+    5% 100%,
+    0% calc(100% - 10px)
+  );
+}
+
+/* Neobrutalist Button Press Interaction */
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-bungee), cursive;
+  border: 3px solid #161616;
+  box-shadow: 4px 4px 0px #161616;
+  transition: all 0.1s ease-in-out;
+  cursor: pointer;
+}
+
+.neo-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #161616;
+}
+
+.neo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #161616;
+}
+
+/* Neobrutalist Card Container */
+.neo-card {
+  background-color: #FFFFFF;
+  border: 3px solid #161616;
+  box-shadow: 5px 5px 0px #161616;
+}
+
+/* Corkboard Background Pattern for Approval Scrapbook */
+.corkboard-pattern {
+  background-color: #f7f5ee;
+  background-image: radial-gradient(#d3cbb8 1px, transparent 1px);
+  background-size: 20px 20px;
+}
