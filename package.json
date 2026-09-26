@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -51,10 +52,13 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "@tsparticles/engine",
-      "prisma",
+      "@clerk/shared",
       "@prisma/client",
-      "@prisma/engines"
+      "@prisma/engines",
+      "@tsparticles/engine",
+      "esbuild",
+      "prisma",
+      "protobufjs"
     ]
   }
 }
