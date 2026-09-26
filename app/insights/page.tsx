@@ -18,7 +18,10 @@ import {
   Layers,
 } from "lucide-react";
 
+import { useUser, SignInButton } from "@clerk/nextjs";
+
 function InsightsContent() {
+  const { isSignedIn, isLoaded } = useUser();
   const searchParams = useSearchParams();
   const initialBriefId = searchParams.get("briefId") || "";
 
@@ -29,17 +32,17 @@ function InsightsContent() {
   const utils = trpc.useUtils();
 
   // Queries
-  const { data: recentBriefs } = trpc.brief.list.useQuery();
+  const { data: recentBriefs } = trpc.brief.list.useQuery(undefined, { enabled: !!isSignedIn });
   const effectiveBriefId = selectedBriefId || recentBriefs?.[0]?.id || "";
 
   const { data: comparisonData, isLoading: isLoadingComparison } =
     trpc.insights.crossPlatformComparison.useQuery(
       { briefId: effectiveBriefId },
-      { enabled: !!effectiveBriefId }
+      { enabled: !!effectiveBriefId && !!isSignedIn }
     );
 
   const { data: weeklyReports, isLoading: isLoadingReports } =
-    trpc.insights.weeklyReports.useQuery();
+    trpc.insights.weeklyReports.useQuery(undefined, { enabled: !!isSignedIn });
 
   // Mutations
   const generateDemoMetricsMutation = trpc.metrics.generateDemoMetrics.useMutation({
@@ -84,6 +87,23 @@ function InsightsContent() {
         topPerformerChannel = item.channel;
       }
     }
+  }
+
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="max-w-xl mx-auto my-16 p-8 border-4 border-ink bg-white shadow-neo text-center">
+        <BarChart3 className="w-12 h-12 text-pink mx-auto mb-3" />
+        <h2 className="font-bungee text-2xl mb-2">ANALYTICS PROTECTED</h2>
+        <p className="font-inter text-sm text-ink/80 mb-6">
+          Sign in with your hoichoi account to view your campaign performance metrics and weekly AI insight reports.
+        </p>
+        <SignInButton mode="modal">
+          <button className="neo-btn bg-lime text-ink px-6 py-2.5 font-bungee text-sm">
+            Sign In to View Insights
+          </button>
+        </SignInButton>
+      </div>
+    );
   }
 
   return (

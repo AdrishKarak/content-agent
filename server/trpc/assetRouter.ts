@@ -1,13 +1,17 @@
 import { z } from "zod";
-import { router, publicProcedure } from "./trpc";
+import { router, protectedProcedure } from "./trpc";
 import { regenerateAsset } from "@/lib/agents/graph";
+import { TRPCError } from "@trpc/server";
 
 export const assetRouter = router({
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ assetId: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.prisma.contentAsset.findUnique({
-        where: { id: input.assetId },
+      const asset = await ctx.prisma.contentAsset.findFirst({
+        where: {
+          id: input.assetId,
+          brief: { userId: ctx.userId }, // Strict user isolation
+        },
         include: {
           brief: true,
           complianceChecks: true,
@@ -17,9 +21,18 @@ export const assetRouter = router({
           scheduledPost: true,
         },
       });
+
+      if (!asset) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Asset not found or access denied.",
+        });
+      }
+
+      return asset;
     }),
 
-  regenerate: publicProcedure
+  regenerate: protectedProcedure
     .input(
       z.object({
         assetId: z.string(),
@@ -27,7 +40,21 @@ export const assetRouter = router({
         target: z.enum(["copy", "image", "both"]).default("both"),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const asset = await ctx.prisma.contentAsset.findFirst({
+        where: {
+          id: input.assetId,
+          brief: { userId: ctx.userId }, // Strict user isolation
+        },
+      });
+
+      if (!asset) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Asset not found or access denied.",
+        });
+      }
+
       return regenerateAsset({
         assetId: input.assetId,
         feedback: input.feedback,

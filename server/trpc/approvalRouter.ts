@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { router, publicProcedure } from "./trpc";
+import { router, protectedProcedure } from "./trpc";
 import { ApprovalDecision, AssetStatus } from "@prisma/client";
 import { regenerateAsset } from "@/lib/agents/graph";
+import { TRPCError } from "@trpc/server";
 
 export const approvalRouter = router({
-  decide: publicProcedure
+  decide: protectedProcedure
     .input(
       z.object({
         assetId: z.string(),
@@ -13,15 +14,18 @@ export const approvalRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const asset = await ctx.prisma.contentAsset.findUnique({
-        where: { id: input.assetId },
+      const asset = await ctx.prisma.contentAsset.findFirst({
+        where: { id: input.assetId, brief: { userId: ctx.userId } },
       });
 
       if (!asset) {
-        throw new Error("Asset not found");
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Asset not found or access denied.",
+        });
       }
 
-      const decidedBy = ctx.userId || "demo_content_manager";
+      const decidedBy = ctx.userId;
 
       // 1. Record in append-only Approval table
       const approval = await ctx.prisma.approval.create({
@@ -61,11 +65,14 @@ export const approvalRouter = router({
       return { approval, regeneratedAsset: regenerated };
     }),
 
-  pendingQueue: publicProcedure.query(async ({ ctx }) => {
+  pendingQueue: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.contentAsset.findMany({
       where: {
         status: {
           in: [AssetStatus.PENDING_APPROVAL, AssetStatus.REJECTED],
+        },
+        brief: {
+          userId: ctx.userId, // Strict user isolation
         },
       },
       orderBy: { createdAt: "desc" },

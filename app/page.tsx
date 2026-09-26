@@ -16,8 +16,10 @@ import {
   Layers,
   Flame,
 } from "lucide-react";
+import { useUser, SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 
 export default function StudioPage() {
+  const { isSignedIn, isLoaded } = useUser();
   const [briefText, setBriefText] = useState("");
   const [activeBriefId, setActiveBriefId] = useState<string | null>(null);
 
@@ -30,10 +32,13 @@ export default function StudioPage() {
 
   const { data: currentBrief, isLoading: isLoadingBrief } = trpc.brief.get.useQuery(
     { briefId: activeBriefId! },
-    { enabled: !!activeBriefId }
+    { enabled: !!activeBriefId && !!isSignedIn }
   );
 
-  const { data: recentBriefs, refetch: refetchRecent } = trpc.brief.list.useQuery();
+  const { data: recentBriefs, refetch: refetchRecent } = trpc.brief.list.useQuery(
+    undefined,
+    { enabled: !!isSignedIn }
+  );
 
   const handleSampleClick = (sample: string) => {
     setBriefText(sample);
@@ -41,6 +46,10 @@ export default function StudioPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isSignedIn) {
+      alert("Please sign in to generate studio campaigns.");
+      return;
+    }
     if (!briefText.trim()) return;
     submitBriefMutation.mutate({ rawBriefText: briefText });
   };
@@ -87,6 +96,19 @@ export default function StudioPage() {
             <h2 className="text-xl font-bungee mb-3 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-pink" /> Campaign Brief
             </h2>
+            <SignedOut>
+              <div className="border-2 border-ink bg-sunshine/30 p-3 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-neo-sm">
+                <div>
+                  <p className="font-bungee text-xs">AUTHENTICATION REQUIRED</p>
+                  <p className="text-[11px] text-ink/80 font-inter">Sign in with your hoichoi account to generate, isolate, and view private campaigns.</p>
+                </div>
+                <SignInButton mode="modal">
+                  <button className="neo-btn bg-lime text-ink px-3 py-1 text-xs whitespace-nowrap self-start sm:self-auto">
+                    Sign In
+                  </button>
+                </SignInButton>
+              </div>
+            </SignedOut>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -147,23 +169,41 @@ export default function StudioPage() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={submitBriefMutation.isPending}
-                className="w-full neo-btn bg-lime text-ink py-3 text-base flex items-center justify-center gap-2 hover:bg-lime-hover disabled:opacity-50"
-              >
-                {submitBriefMutation.isPending ? (
-                  <>
-                    <RotateCcw className="w-5 h-5 animate-spin" />
-                    Generating Tailored Studio Assets...
-                  </>
-                ) : (
-                  <>
+              {submitBriefMutation.error && (
+                <div className="bg-tomato/10 border-2 border-tomato p-3 font-mono text-xs text-tomato">
+                  {submitBriefMutation.error.message}
+                </div>
+              )}
+
+              {isSignedIn ? (
+                <button
+                  type="submit"
+                  disabled={submitBriefMutation.isPending}
+                  className="w-full neo-btn bg-lime text-ink py-3 text-base flex items-center justify-center gap-2 hover:bg-lime-hover disabled:opacity-50"
+                >
+                  {submitBriefMutation.isPending ? (
+                    <>
+                      <RotateCcw className="w-5 h-5 animate-spin" />
+                      Generating Tailored Studio Assets...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Run Multi-Agent Studio
+                    </>
+                  )}
+                </button>
+              ) : (
+                <SignInButton mode="modal">
+                  <button
+                    type="button"
+                    className="w-full neo-btn bg-sunshine text-ink py-3 text-base flex items-center justify-center gap-2 hover:bg-sunshine/80"
+                  >
                     <Sparkles className="w-5 h-5" />
-                    Run Multi-Agent Studio
-                  </>
-                )}
-              </button>
+                    Sign In to Run Multi-Agent Studio
+                  </button>
+                </SignInButton>
+              )}
             </form>
           </div>
 

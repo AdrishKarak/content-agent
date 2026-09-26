@@ -11,14 +11,14 @@ export async function createContext(): Promise<Context> {
   let userId: string | null = null;
   try {
     const clerkAuth = await auth();
-    userId = clerkAuth.userId;
-  } catch {
-    // In dev or non-auth environment, fallback to demo user
-    userId = "demo_content_manager";
+    userId = clerkAuth.userId || null;
+  } catch (err) {
+    console.warn("[tRPC Context] Could not extract Clerk auth:", err);
+    userId = null;
   }
 
   return {
-    userId: userId || "demo_content_manager",
+    userId,
     prisma,
   };
 }

@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { router, publicProcedure } from "./trpc";
+import { router, protectedProcedure } from "./trpc";
 import { AssetStatus } from "@prisma/client";
 import { publishScheduledAsset } from "@/lib/agents/publisher";
+import { TRPCError } from "@trpc/server";
 
 export const publisherRouter = router({
-  schedule: publicProcedure
+  schedule: protectedProcedure
     .input(
       z.object({
         assetId: z.string(),
@@ -12,15 +13,22 @@ export const publisherRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const asset = await ctx.prisma.contentAsset.findUnique({
-        where: { id: input.assetId },
+      const asset = await ctx.prisma.contentAsset.findFirst({
+        where: { id: input.assetId, brief: { userId: ctx.userId } },
       });
 
-      if (!asset) throw new Error("Asset not found");
+      if (!asset) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Asset not found or access denied.",
+        });
+      }
+
       if (asset.status !== AssetStatus.APPROVED) {
-        throw new Error(
-          "Auto-disqualifier protection: Cannot schedule an asset that has not been explicitly APPROVED."
-        );
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Auto-disqualifier protection: Cannot schedule an asset that has not been explicitly APPROVED.",
+        });
       }
 
       // Upsert scheduled post
@@ -43,18 +51,39 @@ export const publisherRouter = router({
       return scheduled;
     }),
 
-  publishNow: publicProcedure
+  publishNow: protectedProcedure
     .input(z.object({ scheduledPostId: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const scheduled = await ctx.prisma.scheduledPost.findFirst({
+        where: { id: input.scheduledPostId, asset: { brief: { userId: ctx.userId } } },
+      });
+
+      if (!scheduled) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scheduled post not found or access denied.",
+        });
+      }
+
       const result = await publishScheduledAsset(input.scheduledPostId);
       if (!result.success) {
-        throw new Error(result.error || "Failed to publish post");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: result.error || "Failed to publish post",
+        });
       }
       return result;
     }),
 
-  list: publicProcedure.query(async ({ ctx }) => {
+  list: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.scheduledPost.findMany({
+      where: {
+        asset: {
+          brief: {
+            userId: ctx.userId, // Strict user isolation
+          },
+        },
+      },
       orderBy: { scheduledAt: "desc" },
       include: {
         asset: {
@@ -73,4 +102,20 @@ export const publisherRouter = router({
       },
     });
   }),
+
+  approvedAssets: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.contentAsset.findMany({
+      where: {
+        status: AssetStatus.APPROVED,
+        brief: {
+          userId: ctx.userId, // Strict user isolation
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        brief: true,
+      },
+    });
+  }),
 });
+

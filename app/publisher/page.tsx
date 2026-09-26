@@ -16,21 +16,26 @@ import {
   Layers,
 } from "lucide-react";
 
+import { useUser, SignInButton } from "@clerk/nextjs";
+
 export default function PublisherPage() {
+  const { isSignedIn, isLoaded } = useUser();
   const [scheduleTimes, setScheduleTimes] = useState<Record<string, string>>({});
   const utils = trpc.useUtils();
 
   // Queries
   const { data: scheduledPosts, isLoading: isLoadingScheduled } =
-    trpc.publisher.list.useQuery();
+    trpc.publisher.list.useQuery(undefined, { enabled: !!isSignedIn });
 
-  const { data: queue } = trpc.approval.pendingQueue.useQuery();
-  const approvedAssets = queue?.filter((a) => a.status === "APPROVED") ?? [];
+  const { data: approvedAssetsList } =
+    trpc.publisher.approvedAssets.useQuery(undefined, { enabled: !!isSignedIn });
+  const approvedAssets = approvedAssetsList ?? [];
 
   // Mutations
   const scheduleMutation = trpc.publisher.schedule.useMutation({
     onSuccess: () => {
       utils.publisher.list.invalidate();
+      utils.publisher.approvedAssets.invalidate();
       utils.approval.pendingQueue.invalidate();
     },
   });
@@ -38,6 +43,7 @@ export default function PublisherPage() {
   const publishNowMutation = trpc.publisher.publishNow.useMutation({
     onSuccess: () => {
       utils.publisher.list.invalidate();
+      utils.publisher.approvedAssets.invalidate();
       utils.approval.pendingQueue.invalidate();
     },
   });
@@ -53,6 +59,23 @@ export default function PublisherPage() {
   const handlePublishNow = (scheduledPostId: string) => {
     publishNowMutation.mutate({ scheduledPostId });
   };
+
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="max-w-xl mx-auto my-16 p-8 border-4 border-ink bg-white shadow-neo text-center">
+        <Send className="w-12 h-12 text-blue mx-auto mb-3" />
+        <h2 className="font-bungee text-2xl mb-2">PUBLISHER RESTRICTED</h2>
+        <p className="font-inter text-sm text-ink/80 mb-6">
+          Sign in with your hoichoi account to schedule and publish your approved campaign assets.
+        </p>
+        <SignInButton mode="modal">
+          <button className="neo-btn bg-lime text-ink px-6 py-2.5 font-bungee text-sm">
+            Sign In to Publisher
+          </button>
+        </SignInButton>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">

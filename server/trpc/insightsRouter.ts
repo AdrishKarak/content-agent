@@ -1,13 +1,16 @@
 import { z } from "zod";
-import { router, publicProcedure } from "./trpc";
+import { router, protectedProcedure } from "./trpc";
 import { generateWeeklyReport } from "@/lib/agents/insightAgent";
 
 export const insightsRouter = router({
-  crossPlatformComparison: publicProcedure
+  crossPlatformComparison: protectedProcedure
     .input(z.object({ briefId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const brief = await ctx.prisma.brief.findUnique({
-        where: { id: input.briefId },
+      const brief = await ctx.prisma.brief.findFirst({
+        where: {
+          id: input.briefId,
+          userId: ctx.userId, // Strict user isolation
+        },
         include: {
           assets: {
             include: {
@@ -64,7 +67,7 @@ export const insightsRouter = router({
       };
     }),
 
-  weeklyReports: publicProcedure
+  weeklyReports: protectedProcedure
     .input(
       z
         .object({
@@ -83,7 +86,7 @@ export const insightsRouter = router({
       });
     }),
 
-  generateReport: publicProcedure
+  generateReport: protectedProcedure
     .input(
       z.object({
         periodStart: z.string(),

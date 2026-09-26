@@ -1,23 +1,24 @@
 import { z } from "zod";
-import { router, publicProcedure } from "./trpc";
+import { router, protectedProcedure } from "./trpc";
 import { runGenerationPipeline } from "@/lib/agents/graph";
+import { TRPCError } from "@trpc/server";
 
 export const briefRouter = router({
-  submit: publicProcedure
+  submit: protectedProcedure
     .input(z.object({ rawBriefText: z.string().min(5) }))
     .mutation(async ({ ctx, input }) => {
       const result = await runGenerationPipeline({
         rawBriefText: input.rawBriefText,
-        userId: ctx.userId || "demo_content_manager",
+        userId: ctx.userId,
       });
       return result;
     }),
 
-  get: publicProcedure
+  get: protectedProcedure
     .input(z.object({ briefId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const brief = await ctx.prisma.brief.findUnique({
-        where: { id: input.briefId },
+      const brief = await ctx.prisma.brief.findFirst({
+        where: { id: input.briefId, userId: ctx.userId },
         include: {
           assets: {
             include: {
@@ -29,10 +30,18 @@ export const briefRouter = router({
           },
         },
       });
+
+      if (!brief) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign brief not found or access denied.",
+        });
+      }
+
       return brief;
     }),
 
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z
         .object({
@@ -44,6 +53,7 @@ export const briefRouter = router({
     .query(async ({ ctx, input }) => {
       const limit = input?.limit ?? 20;
       return ctx.prisma.brief.findMany({
+        where: { userId: ctx.userId },
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
