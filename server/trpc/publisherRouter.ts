@@ -1,15 +1,15 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "./trpc";
+import { router, protectedProcedure, rateLimitedProcedure } from "./trpc";
 import { AssetStatus } from "@prisma/client";
 import { publishScheduledAsset } from "@/lib/agents/publisher";
 import { TRPCError } from "@trpc/server";
 
 export const publisherRouter = router({
-  schedule: protectedProcedure
+  schedule: rateLimitedProcedure
     .input(
       z.object({
-        assetId: z.string(),
-        scheduledAt: z.string(), // ISO string
+        assetId: z.string().min(1).max(100),
+        scheduledAt: z.string().min(1).max(100),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -51,15 +51,15 @@ export const publisherRouter = router({
       return scheduled;
     }),
 
-  batchSchedule: protectedProcedure
+  batchSchedule: rateLimitedProcedure
     .input(
       z.object({
         items: z.array(
           z.object({
-            assetId: z.string(),
-            scheduledAt: z.string(),
+            assetId: z.string().min(1).max(100),
+            scheduledAt: z.string().min(1).max(100),
           })
-        ),
+        ).min(1).max(10),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -94,8 +94,8 @@ export const publisherRouter = router({
       return results;
     }),
 
-  publishNow: protectedProcedure
-    .input(z.object({ scheduledPostId: z.string() }))
+  publishNow: rateLimitedProcedure
+    .input(z.object({ scheduledPostId: z.string().min(1).max(100) }))
     .mutation(async ({ ctx, input }) => {
       const scheduled = await ctx.prisma.scheduledPost.findFirst({
         where: { id: input.scheduledPostId, asset: { brief: { userId: ctx.userId } } },

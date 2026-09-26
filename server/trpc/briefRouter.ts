@@ -1,14 +1,16 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "./trpc";
+import { router, protectedProcedure, generationProcedure } from "./trpc";
 import { runGenerationPipeline } from "@/lib/agents/graph";
+import { sanitizePromptText } from "@/lib/security/sanitize";
 import { TRPCError } from "@trpc/server";
 
 export const briefRouter = router({
-  submit: protectedProcedure
-    .input(z.object({ rawBriefText: z.string().min(5) }))
+  submit: generationProcedure
+    .input(z.object({ rawBriefText: z.string().min(5).max(4000).trim() }))
     .mutation(async ({ ctx, input }) => {
+      const sanitizedText = sanitizePromptText(input.rawBriefText, 4000);
       const result = await runGenerationPipeline({
-        rawBriefText: input.rawBriefText,
+        rawBriefText: sanitizedText,
         userId: ctx.userId,
       });
       return result;

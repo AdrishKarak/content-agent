@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "./trpc";
+import { router, protectedProcedure, rateLimitedProcedure } from "./trpc";
 import { recordPostMetric, parseAndIngestMetricsCsv } from "@/lib/agents/analyticsAgent";
 import { TRPCError } from "@trpc/server";
 
 export const metricsRouter = router({
-  generateDemoMetrics: protectedProcedure
-    .input(z.object({ publishedPostId: z.string() }))
+  generateDemoMetrics: rateLimitedProcedure
+    .input(z.object({ publishedPostId: z.string().min(1).max(100).trim() }))
     .mutation(async ({ ctx, input }) => {
       const pub = await ctx.prisma.publishedPost.findFirst({
         where: {
@@ -30,8 +30,8 @@ export const metricsRouter = router({
       });
     }),
 
-  uploadCsv: protectedProcedure
-    .input(z.object({ csvContent: z.string().min(5) }))
+  uploadCsv: rateLimitedProcedure
+    .input(z.object({ csvContent: z.string().min(5).max(100000) }))
     .mutation(async ({ input }) => {
       return parseAndIngestMetricsCsv(input.csvContent);
     }),

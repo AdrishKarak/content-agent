@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "./trpc";
+import { router, protectedProcedure, generationProcedure } from "./trpc";
 import { regenerateAsset } from "@/lib/agents/graph";
+import { sanitizePromptText } from "@/lib/security/sanitize";
 import { TRPCError } from "@trpc/server";
 
 export const assetRouter = router({
   getById: protectedProcedure
-    .input(z.object({ assetId: z.string() }))
+    .input(z.object({ assetId: z.string().min(1).max(100) }))
     .query(async ({ ctx, input }) => {
       const asset = await ctx.prisma.contentAsset.findFirst({
         where: {
@@ -32,11 +33,11 @@ export const assetRouter = router({
       return asset;
     }),
 
-  regenerate: protectedProcedure
+  regenerate: generationProcedure
     .input(
       z.object({
-        assetId: z.string(),
-        feedback: z.string().optional(),
+        assetId: z.string().min(1).max(100),
+        feedback: z.string().max(1000).trim().optional(),
         target: z.enum(["copy", "image", "both"]).default("both"),
       })
     )
@@ -55,9 +56,13 @@ export const assetRouter = router({
         });
       }
 
+      const sanitizedFeedback = input.feedback
+        ? sanitizePromptText(input.feedback, 1000)
+        : undefined;
+
       return regenerateAsset({
         assetId: input.assetId,
-        feedback: input.feedback,
+        feedback: sanitizedFeedback,
         target: input.target,
       });
     }),

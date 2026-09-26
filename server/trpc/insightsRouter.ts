@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "./trpc";
+import { router, protectedProcedure, rateLimitedProcedure } from "./trpc";
 import { generateWeeklyReport } from "@/lib/agents/insightAgent";
 
 export const insightsRouter = router({
@@ -86,11 +86,11 @@ export const insightsRouter = router({
       });
     }),
 
-  generateReport: protectedProcedure
+  generateReport: rateLimitedProcedure
     .input(
       z.object({
-        periodStart: z.string(),
-        periodEnd: z.string(),
+        periodStart: z.string().min(10).max(50),
+        periodEnd: z.string().min(10).max(50),
       })
     )
     .mutation(async ({ input }) => {

@@ -1,19 +1,23 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "./trpc";
+import { router, protectedProcedure, rateLimitedProcedure } from "./trpc";
 import { ApprovalDecision, AssetStatus } from "@prisma/client";
 import { regenerateAsset } from "@/lib/agents/graph";
+import { sanitizePromptText } from "@/lib/security/sanitize";
 import { TRPCError } from "@trpc/server";
 
 export const approvalRouter = router({
-  decide: protectedProcedure
+  decide: rateLimitedProcedure
     .input(
       z.object({
-        assetId: z.string(),
+        assetId: z.string().min(1).max(100),
         decision: z.enum(["APPROVE", "REJECT", "REGENERATE"]),
-        feedback: z.string().optional(),
+        feedback: z.string().max(1000).trim().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const sanitizedFeedback = input.feedback
+        ? sanitizePromptText(input.feedback, 1000)
+        : undefined;
       const asset = await ctx.prisma.contentAsset.findFirst({
         where: { id: input.assetId, brief: { userId: ctx.userId } },
       });
