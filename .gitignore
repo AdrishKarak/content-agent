@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+dist/
+build/
+
+# env — never commit these, especially for a public hackathon repo
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# testing
+coverage/
+playwright-report/
+test-results/
+
+# misc
+*.tsbuildinfo

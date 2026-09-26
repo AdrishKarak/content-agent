@@ -1,0 +1,235 @@
+// ────────────────────────────────────────────────────────────
+// AI Content Studio & Multi-Platform Command Center — Prisma Schema
+// Provider: Neon/Supabase PostgreSQL + pgvector
+// ────────────────────────────────────────────────────────────
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ────────────────────────────────────────────────────────────
+// ENUMS
+// ────────────────────────────────────────────────────────────
+
+enum Channel {
+  INSTAGRAM
+  FACEBOOK
+  TWITTER
+}
+
+enum Language {
+  BN
+  EN
+  BOTH
+}
+
+enum AssetType {
+  COPY
+  IMAGE
+}
+
+enum AssetStatus {
+  GENERATING
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SCHEDULED
+  PUBLISHED
+}
+
+enum ApprovalDecision {
+  APPROVE
+  REJECT
+  REGENERATE
+}
+
+enum MetricSource {
+  MOCK
+  CSV_UPLOAD
+}
+
+// ────────────────────────────────────────────────────────────
+// BRIEFING
+// ────────────────────────────────────────────────────────────
+
+model Brief {
+  id             String   @id @default(cuid())
+  userId         String
+  rawBriefText   String   @db.Text
+
+  // Structured output of the Brief Analyzer Agent
+  genre          String?
+  targetAudience String?
+  language       Language @default(BOTH)
+  tone           String?
+  targetChannels Channel[]
+
+  embedding      Unsupported("vector(1536)")?
+
+  assets         ContentAsset[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@map("briefs")
+}
+
+// ────────────────────────────────────────────────────────────
+// GENERATION
+// ────────────────────────────────────────────────────────────
+
+model ContentAsset {
+  id                String       @id @default(cuid())
+  briefId           String
+  brief             Brief        @relation(fields: [briefId], references: [id], onDelete: Cascade)
+
+  channel           Channel
+  type              AssetType
+  version           Int          @default(1) // incremented on regenerate
+
+  copyBn            String?      @db.Text
+  copyEn            String?      @db.Text
+  cta               String?
+  hashtags          String[]     @default([])
+
+  imageUrl          String?
+  imagePrompt       String?      @db.Text
+
+  bengaliNativenessPassed Boolean?
+  bengaliNativenessAttempt Int    @default(0)
+
+  status            AssetStatus  @default(GENERATING)
+
+  complianceChecks  ComplianceCheck[]
+  approvals         Approval[]
+  scheduledPost     ScheduledPost?
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([briefId, channel])
+  @@map("content_assets")
+}
+
+model ComplianceCheck {
+  id        String       @id @default(cuid())
+  assetId   String
+  asset     ContentAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  rule      String       // e.g. "character_limit", "aspect_ratio", "file_size", "hashtag_count"
+  passed    Boolean
+  reason    String?      @db.Text
+
+  checkedAt DateTime     @default(now())
+
+  @@index([assetId])
+  @@map("compliance_checks")
+}
+
+// ────────────────────────────────────────────────────────────
+// REVIEW
+// ────────────────────────────────────────────────────────────
+
+model Approval {
+  id        String           @id @default(cuid())
+  assetId   String
+  asset     ContentAsset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetVersion Int           // which version of the asset this decision applies to
+
+  decision  ApprovalDecision
+  feedback  String?          @db.Text
+  decidedBy String           // userId
+  decidedAt DateTime         @default(now())
+
+  @@index([assetId])
+  @@map("approvals")
+}
+
+// ────────────────────────────────────────────────────────────
+// PUBLISHING
+// ────────────────────────────────────────────────────────────
+
+model ScheduledPost {
+  id           String       @id @default(cuid())
+  assetId      String       @unique
+  asset        ContentAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  scheduledAt  DateTime
+
+  publishedPost PublishedPost?
+
+  createdAt    DateTime     @default(now())
+
+  @@map("scheduled_posts")
+}
+
+model PublishedPost {
+  id               String        @id @default(cuid())
+  scheduledPostId  String        @unique
+  scheduledPost    ScheduledPost @relation(fields: [scheduledPostId], references: [id], onDelete: Cascade)
+
+  mockPlatformPostId String
+  publishedAt        DateTime    @default(now())
+
+  metrics            Metric[]
+
+  @@map("published_posts")
+}
+
+// ────────────────────────────────────────────────────────────
+// ANALYTICS
+// ────────────────────────────────────────────────────────────
+
+model Metric {
+  id              String        @id @default(cuid())
+  publishedPostId String
+  publishedPost   PublishedPost @relation(fields: [publishedPostId], references: [id], onDelete: Cascade)
+
+  views           Int           @default(0)
+  likes           Int           @default(0)
+  shares          Int           @default(0)
+  comments        Int           @default(0)
+
+  source          MetricSource  @default(MOCK)
+  ingestedAt      DateTime      @default(now())
+
+  @@index([publishedPostId])
+  @@map("metrics")
+}
+
+model WeeklyReport {
+  id           String   @id @default(cuid())
+  periodStart  DateTime
+  periodEnd    DateTime
+
+  summary      String   @db.Text
+  keyInsights  Json     // [{ claim, citedPostIds[] }]
+
+  generatedAt  DateTime @default(now())
+
+  insightEmbeddings InsightEmbedding[]
+
+  @@map("weekly_reports")
+}
+
+model InsightEmbedding {
+  id             String       @id @default(cuid())
+  weeklyReportId String
+  weeklyReport   WeeklyReport @relation(fields: [weeklyReportId], references: [id], onDelete: Cascade)
+
+  claim          String       @db.Text
+  embedding      Unsupported("vector(1536)")?
+
+  createdAt      DateTime     @default(now())
+
+  @@index([weeklyReportId])
+  @@map("insight_embeddings")
+}
