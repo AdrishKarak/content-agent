@@ -12,6 +12,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:jest": "vitest run",
+    "jest": "vitest run",
     "inngest:dev": "npx inngest-cli@latest dev",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

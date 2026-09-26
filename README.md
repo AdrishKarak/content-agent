@@ -305,6 +305,56 @@ pnpm build     # Next.js 15 App Router production bundle compiled successfully
 
 ---
 
+## 🐳 Docker & Containerization
+
+The studio is fully containerized with a production-optimized multi-stage build running Next.js 15 Standalone output on Alpine Linux with a secure non-root user.
+
+### Option A: Complete Stack via Docker Compose (Includes PostgreSQL + pgvector)
+Run the application and an isolated PostgreSQL instance with `pgvector` enabled out-of-the-box:
+
+```bash
+# Start Next.js App + pgvector Database
+docker compose up -d
+
+# Check running status
+docker compose ps
+
+# View real-time container logs
+docker compose logs -f app
+```
+
+Services initialized:
+- `hoichoi_pgvector`: Official `pgvector/pgvector:pg16` image on port `5432` with automated healthchecks.
+- `hoichoi_content_studio`: Standalone Next.js 15 container on port `3000`.
+
+### Option B: Build Standalone Image
+```bash
+docker build -t hoichoi-ai-content-studio ./ai-content-studio
+docker run -p 3000:3000 --env-file ai-content-studio/.env hoichoi-ai-content-studio
+```
+
+---
+
+## 🔄 CI/CD Automation Pipeline
+
+The repository includes an enterprise-grade GitHub Actions pipeline configured in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) triggering on every push and pull request to `main`/`master`:
+
+```mermaid
+flowchart LR
+    A["git push / PR"] --> B["1. Quality Check\n(TypeScript typecheck)"]
+    B --> C["2. Test Suite\n(Deterministic Rules & Guardrails)"]
+    C --> D["3. Standalone Build\n(Next.js Production Bundle)"]
+    D --> E["4. Container Build\n(Docker Multi-Stage Verify)"]
+
+    classDef stage fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
+    class B,C,D,E stage;
+```
+
+1. **Typecheck & Quality Audit:** Runs `pnpm typecheck` (`tsc --noEmit`) to guarantee zero compile-time bugs.
+2. **Automated Test Suite:** Generates Prisma client and executes unit & integration tests (`pnpm test` / `pnpm test:jest`) covering compliance logic and pgvector similarity retrieval.
+3. **Standalone Production Build:** Compiles the full Next.js 15 App Router static & dynamic page traces.
+4. **Docker Container Verification:** Executes `docker/build-push-action` using Buildx to guarantee image deployability.
+
 ## 🗄️ Database Schema & Vector Extension
 
 ```mermaid
